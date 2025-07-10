@@ -4,9 +4,9 @@ how
 
 My goals for this project:
 
-Learn how the Heston model works and implement a basic version of it in py
+Learn how the Heston model works and implement a basic version of it in py - DONE
 
-Optimize/extend it to address limitations/"make it faster"
+Optimize/extend it to address limitations/"make it faster" - working on it/learning abt the limits of heston rn
 
 Make plots
 
