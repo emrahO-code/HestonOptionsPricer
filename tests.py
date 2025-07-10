@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 from heston import heston_characteristic_function, heston_call_price, heston_put_price
 
