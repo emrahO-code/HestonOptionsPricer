@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import quad
 from numpy.polynomial.legendre import leggauss
 from typing import NamedTuple
 
