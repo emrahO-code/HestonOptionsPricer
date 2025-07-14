@@ -66,14 +66,14 @@ def heston_gradient(theta, T,S0,r,q,K,N=64):
     gradients = np.zeros(5, dtype=np.complex128)
 
     for k in range(len(uk)):
-        gradients[0] = np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h1[k]
-        gradients[1] = np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h2[k]
-        gradients[2] = np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h3[k]
-        gradients[3] = np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h4[k]
-        gradients[4] = np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h5[k]
+        gradients[0] += np.real(np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h1[k])
+        gradients[1] += np.real(np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h2[k])
+        gradients[2] += np.real(np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h3[k])
+        gradients[3] += np.real(np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h4[k])
+        gradients[4] += np.real(np.exp(-1j * uk[k] * np.log(K)) / (1j * uk[k]) * phi[k] *wk[k] * h5[k])
     return gradients
 
-def heston_call(theta, u, T,S0,r,q,K, N=1000):
+def heston_call(theta, T,S0,r,q,K):
     part1 = 0.5 * (S0 * np.exp(-q*T) - K * np.exp(-r*T))
     
     def integrand1(u):
@@ -84,18 +84,30 @@ def heston_call(theta, u, T,S0,r,q,K, N=1000):
         return np.real((np.exp(-1j * u * np.log(K/S0)) / (1j * u)) * 
                       heston_char(theta, u, T, S0, r, q))
     
-    integral1, _ = quad(integrand1, 0, N, limit=1000)
-    integral2, _ = quad(integrand2, 0, N, limit=1000)
+    umax = min(200, 50 * np.sqrt(T))
+    integral1, _ = quad(integrand1, 0, umax, limit=1000)
+    integral2, _ = quad(integrand2, 0, umax, limit=1000)
 
     part2 = (np.exp(-r*T)/np.pi) * (S0 * integral1 - K * integral2)
     
     return part1 + part2
 
-def residual(theta, u, T,S0,r,q,K, market_price):
-    model_price = heston_call(theta, u, T,S0,r,q,K)
-    return model_price - market_price
+def residual(theta, T,S0,r,q,K, market_prices):
+    model_prices = [heston_call(theta, T,S0,r,q,k) for k in K]
+    residuals = np.array(model_prices) - np.array(market_prices)
+    return residuals
 
-1
+def jacobian(theta, T,S0,r,q,K):
+    J = np.zeros((len(K), 5), dtype=np.float64)
+    for i, k in enumerate(K):
+        grad = heston_gradient(theta, T,S0,r,q,k)
+        J[i, :] = np.real(grad)
+    return J
+
+
+market_prices = [10.0, 8.0, 6.0, 4.0, 2.0]  # Example market prices for different strikes
+K = [90, 95, 100, 105, 110]  # Corresponding strike prices
+
 # Example usage
 S0 = 100 # Initial stock price
 r = 0.05 # Risk-free rate
@@ -106,10 +118,8 @@ vbar = 0.05 # Long-run variance
 sigma = 0.3 # Volatility of volatility
 rho = -0.5 # Correlation
 v0 = 0.05 # Initial variance
-u = 10 # Fourier transform variable
-K = 100 # Strike price
 
 theta = theta(v0,vbar,rho,kappa,sigma)
 
-print(heston_call(theta,u,T,S0,r,q,K))
+print(heston_gradient(theta, T,S0,r,q,110))
 
