@@ -91,17 +91,23 @@ def heston_call(theta, u, T,S0,r,q,K, N=1000):
     
     return part1 + part2
 
-S0 = 100
-r = 0.05
-q = 0.0
-T = 1.0
-kappa = 2.0
-vbar = 0.05
-sigma = 0.3
-rho = -0.5
-v0 = 0.05
-u = 10
-K = 100
+def residual(theta, u, T,S0,r,q,K, market_price):
+    model_price = heston_call(theta, u, T,S0,r,q,K)
+    return model_price - market_price
+
+1
+# Example usage
+S0 = 100 # Initial stock price
+r = 0.05 # Risk-free rate
+q = 0.0 # Dividend yield
+T = 1.0 # Time to maturity
+kappa = 2.0 # Mean reversion speed
+vbar = 0.05 # Long-run variance
+sigma = 0.3 # Volatility of volatility
+rho = -0.5 # Correlation
+v0 = 0.05 # Initial variance
+u = 10 # Fourier transform variable
+K = 100 # Strike price
 
 theta = theta(v0,vbar,rho,kappa,sigma)
 
